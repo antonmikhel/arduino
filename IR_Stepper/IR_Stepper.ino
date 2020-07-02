@@ -1,12 +1,13 @@
 #define STEPS_IN_A_DAY 86400
 #define IR_PIN 0
+#define MIN_DISTANCE 10.0f
 #define IR_DISTANCE 50.0f
 #define STEPPER_PIN_1 9
 #define STEPPER_PIN_2 10
 #define STEPPER_PIN_3 11
 #define STEPPER_PIN_4 12
 #define SOUND_SENSOR A5 // the piezo is connected to analog pin 0
-#define SOUND_THRESH 25  // threshold value to decide when the detected sound is valid
+#define SOUND_THRESH 20  // threshold value to decide when the detected sound is valid
 
 #define CLOCKWISE true
 #define ANTICLOCKWISE false
@@ -111,6 +112,7 @@ void goAntiClockwiseForAWhile(int steps)
 {
   for (int i = 0; i < steps; i++)
     oneBigStep(ANTICLOCKWISE);
+    delay(100);
 }
 
 void setup()
@@ -127,12 +129,13 @@ void loop()
   float volts = analogRead(IR_PIN) * 0.0048828125;
   float distance = 65 * pow(volts, -1.10);
   int soundReading = analogRead(SOUND_SENSOR);
-  
+
+  int FIVE_SECOND_DELAY = 5000;
   int TWO_SECOND_DELAY = 2000; // in miliseconds;
   int ONE_SECOND_DELAY = 1000;
 
   interactionType = 0;
-  if (distance < IR_DISTANCE)
+  if (distance < IR_DISTANCE && distance > MIN_DISTANCE)
     interactionType = 1;
 
   if (soundReading > SOUND_THRESH)
@@ -141,20 +144,22 @@ void loop()
   switch (interactionType)
   {
     case 0:
-      oneBigStep(CLOCKWISE);
+      for (int i = 0; i < 5; i++)
+        oneBigStep(CLOCKWISE);
       break;
     case 1:
-      delay(TWO_SECOND_DELAY);
+      delay(FIVE_SECOND_DELAY);
       break;
     case 2:
-      goAntiClockwiseForAWhile(10);
+      goAntiClockwiseForAWhile(random(20, 50));
+      // delay(ONE_SECOND_DELAY);
       break;
   }
 
   Serial.print(distance);
   Serial.println(" cm");
-  Serial.print("Sound: ");
-  Serial.println(soundReading);
+  // Serial.print("Sound: ");
+  // Serial.println(soundReading);
 
   delay(100);
 }
